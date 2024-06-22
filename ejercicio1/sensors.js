@@ -1,4 +1,18 @@
-class Sensor {}
+class Sensor {
+    constructor(id, name, type, value, unit, updated_at) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.value = value;
+        this.unit = unit;
+        this.updated_at = updated_at;
+    }
+
+    set updateValue(newValue) {
+        this.value = newValue;
+        this.updated_at = new Date().toISOString();
+    }
+}
 
 class SensorManager {
     constructor() {
@@ -9,21 +23,32 @@ class SensorManager {
         this.sensors.push(sensor);
     }
 
+    async loadSensors(url) {
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            this.sensors = data.map(sensor => new Sensor(sensor.id, sensor.name, sensor.type, sensor.value, sensor.unit, sensor.updated_at));
+            this.render();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
     updateSensor(id) {
         const sensor = this.sensors.find((sensor) => sensor.id === id);
         if (sensor) {
             let newValue;
             switch (sensor.type) {
-                case "temperatura": // Rango de -30 a 50 grados Celsius
+                case "temperature":
                     newValue = (Math.random() * 80 - 30).toFixed(2);
                     break;
-                case "humedad": // Rango de 0 a 100%
+                case "humidity":
                     newValue = (Math.random() * 100).toFixed(2);
                     break;
-                case "presion": // Rango de 960 a 1040 hPa (hectopascales o milibares)
+                case "pressure":
                     newValue = (Math.random() * 80 + 960).toFixed(2);
                     break;
-                default: // Valor por defecto si el tipo es desconocido
+                default:
                     newValue = (Math.random() * 100).toFixed(2);
             }
             sensor.updateValue = newValue;
@@ -32,8 +57,6 @@ class SensorManager {
             console.error(`Sensor ID ${id} no encontrado`);
         }
     }
-
-    async loadSensors(url) {}
 
     render() {
         const container = document.getElementById("sensor-container");
@@ -69,6 +92,7 @@ class SensorManager {
                             sensor.id
                         }">Actualizar</a>
                     </footer>
+
                 </div>
             `;
             container.appendChild(sensorCard);
@@ -86,5 +110,5 @@ class SensorManager {
 }
 
 const monitor = new SensorManager();
-
 monitor.loadSensors("sensors.json");
+
